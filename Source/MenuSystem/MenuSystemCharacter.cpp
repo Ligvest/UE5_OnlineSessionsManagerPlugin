@@ -100,70 +100,17 @@ void AMenuSystemCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 
 void AMenuSystemCharacter::CreateGameSession()
 {
-	if (!OnlineSessionPtr.IsValid()) {
-		return;
+	UGameInstance* GameInstance = GetGameInstance();
+	if (GameInstance) {
+		UMultiplayerSessionsSubsystem* SessionsSubsystemHelper = GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
+		if (SessionsSubsystemHelper)
+		{
+			// Debug
+			DEBUG_MESSAGE(FString(TEXT("SessionsSubsystem OK.")), FColor::Green);
+
+			SessionsSubsystemHelper->CreateSession(4, EGameModes::Default);
+		}
 	}
-
-	//UGameInstance* GameInstance = GetGameInstance();
-	//if (GameInstance) {
-	//	GEngine->AddOnScreenDebugMessage(
-	//		-1,
-	//		5.f,
-	//		FColor::Blue,
-	//		FString::Printf(TEXT("GameInstance OK."))
-	//	);
-
-	//	UMultiplayerSessionsSubsystem* SessionsSubsystemHelper = GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
-	//	if (SessionsSubsystemHelper)
-	//	{
-	//		GEngine->AddOnScreenDebugMessage(
-	//			-1,
-	//			5.f,
-	//			FColor::Blue,
-	//			FString::Printf(TEXT("SessionsSubsystem OK."))
-	//		);
-	//		SessionsSubsystemHelper->CreateSession(4, TEXT("Ligvest"));
-	//	}
-	//}
-
-	//return;
-
-
-
-
-	FNamedOnlineSession* ExistingSession = OnlineSessionPtr->GetNamedSession(NAME_GameSession);
-	if (ExistingSession != nullptr) {
-		//OnlineSessionInterfacePtr->DestroySession(NAME_GameSession);
-		GEngine->AddOnScreenDebugMessage(
-			-1,
-			5.f,
-			FColor::Blue,
-			FString::Printf(TEXT("Existing session was destroyed"))
-		);
-	}
-
-	// Clear from previous delegates to prevent many copies of one delegate be executed
-	//FDelegateHandle OnCreateSessionCompleteDelegateHandle;
-	//OnlineSessionInterfacePtr->ClearOnCreateSessionCompleteDelegate_Handle(OnCreateSessionCompleteDelegateHandle);
-	OnlineSessionPtr->AddOnCreateSessionCompleteDelegate_Handle(OnCreateSessionCompleteDelegate);
-
-
-	// Configure the session
-	TSharedPtr<FOnlineSessionSettings> OnlineSessionSettingsPtr = MakeShareable(new FOnlineSessionSettings);
-	OnlineSessionSettingsPtr->bIsLANMatch = false;
-	OnlineSessionSettingsPtr->NumPublicConnections = 4;
-	OnlineSessionSettingsPtr->bAllowJoinInProgress = true;
-	OnlineSessionSettingsPtr->bShouldAdvertise = true;
-	OnlineSessionSettingsPtr->bAllowJoinViaPresence = true;
-	OnlineSessionSettingsPtr->bUsesPresence = true;
-	OnlineSessionSettingsPtr->bUseLobbiesIfAvailable = true;
-
-	FName MatchTypeKey = FName(TEXT("MatchType"));
-	FString MatchTypeValue = FString(TEXT("DefaultLigvest"));
-	OnlineSessionSettingsPtr->Set(MatchTypeKey, MatchTypeValue, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
-
-	ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-	OnlineSessionPtr->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *OnlineSessionSettingsPtr);
 }
 
 void AMenuSystemCharacter::JoinGameSession()
@@ -173,12 +120,9 @@ void AMenuSystemCharacter::JoinGameSession()
 		UMultiplayerSessionsSubsystem* SessionsSubsystemHelper = GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
 		if (SessionsSubsystemHelper)
 		{
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				5.f,
-				FColor::Blue,
-				FString::Printf(TEXT("SessionsSubsystem OK."))
-			);
+			// Debug
+			DEBUG_MESSAGE(FString(TEXT("SessionsSubsystem OK.")), FColor::Green);
+
 			SessionsSubsystemHelper->FindSessions(10000);
 		}
 	}

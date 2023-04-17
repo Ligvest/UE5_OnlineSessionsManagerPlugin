@@ -10,9 +10,9 @@
 		if (GEngine) {\
 			GEngine->AddOnScreenDebugMessage(\
 					- 1, \
-					5.f, \
+					8.f, \
 					FColor_MessageColor, \
-					FString_MessageText, true, FVector2D(2, 2)\
+					FString_MessageText, true, FVector2D(1.5f, 1.5f)\
 				); \
 		} \
 }
@@ -23,7 +23,13 @@
 enum ESessionSettings {
 	GameMode,
 
-	EnumSize,
+	ESessionSettingsSize,
+};
+
+enum EGameModes {
+	Default,
+
+	EGameModesSize,
 };
 
 /**
@@ -41,7 +47,7 @@ public:
 
 // Interface
 public:
-	void CreateSession(int NumPublicConnections, FString GameMode);
+	void CreateSession(int NumPublicConnections, EGameModes GameMode);
 	void StartSession();
 	void FindSessions(int MaxSearchResults);
 	void JoinSession(const FOnlineSessionSearchResult& SearchResults);
@@ -79,6 +85,7 @@ private:
 
 	FName CurrentSessionName;
 	FName SubsystemName;
-	TArray<FName, TFixedAllocator<ESessionSettings::EnumSize>> SessionSettingsKeys;
+	TArray<FName, TFixedAllocator<ESessionSettings::ESessionSettingsSize>> SessionSettingsKeys;
+	TArray<FString, TFixedAllocator<EGameModes::EGameModesSize>> GameModesArray;
 };
 
