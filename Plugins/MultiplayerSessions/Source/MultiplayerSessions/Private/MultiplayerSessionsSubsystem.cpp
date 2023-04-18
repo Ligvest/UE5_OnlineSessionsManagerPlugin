@@ -22,11 +22,11 @@ UMultiplayerSessionsSubsystem::UMultiplayerSessionsSubsystem():
 
 	// Initializing custom Session settings
 	SessionSettingsKeys.SetNum(ESessionSettings::ESessionSettingsSize);
-	SessionSettingsKeys[ESessionSettings::GameMode] = FName(TEXT("MatchType"));
+	SessionSettingsKeys[ESessionSettings::GameMode] = FName(TEXT("GameMode"));
 
 	// Initializing list of game modes
 	GameModesArray.SetNum(EGameModes::EGameModesSize);
-	GameModesArray[EGameModes::Default] = FString(TEXT("DefaultLigvest"));
+	GameModesArray[EGameModes::Default] = FString(TEXT("DefaultMode"));
 }
 
 void UMultiplayerSessionsSubsystem::CreateSession(int NumPublicConnections, EGameModes GameMode)
@@ -38,6 +38,12 @@ void UMultiplayerSessionsSubsystem::CreateSession(int NumPublicConnections, EGam
 	if (!OnCreateSessionCompleteDelegateHandle.IsValid()) {
 		OnCreateSessionCompleteDelegateHandle = OnlineSessionPtr->AddOnCreateSessionCompleteDelegate_Handle(OnCreateSessionCompleteDelegate);
 	}
+
+	// Should be tested.
+	//FNamedOnlineSession* ExistingSession = OnlineSessionPtr->GetNamedSession(CurrentSessionName);
+	//if (ExistingSession) {
+	//	OnlineSessionPtr->DestroySession(CurrentSessionName);
+	//}
 
 	// Debug
 	DEBUG_MESSAGE(FString(TEXT("Creating a Session")), FColor::Yellow);
@@ -57,6 +63,8 @@ void UMultiplayerSessionsSubsystem::CreateSession(int NumPublicConnections, EGam
 	SessionSettingsPtr->Set(SessionSettingsKeys[ESessionSettings::GameMode], GameModesArray[EGameModes::Default], EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
 	OnlineSessionPtr->CreateSession(0, CurrentSessionName, *SessionSettingsPtr);
+	// Here the lector checks for success of session creation and clean up 
+	// delegate if the creation is not successful. Later will add this if it will be needed
 }
 
 void UMultiplayerSessionsSubsystem::StartSession()
@@ -93,6 +101,15 @@ void UMultiplayerSessionsSubsystem::JoinSession(const FOnlineSessionSearchResult
 void UMultiplayerSessionsSubsystem::DestroySession()
 {
 
+}
+
+void UMultiplayerSessionsSubsystem::HostLobby(int NumPublicConnections, EGameModes GameMode, const FString& LobbyMapURL)
+{
+	CreateSession(4, EGameModes::Default);
+	UWorld* World = GetWorld();
+	if (World) {
+		World->ServerTravel(LobbyMapURL);
+	}
 }
 
 void UMultiplayerSessionsSubsystem::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)

@@ -21,3 +21,19 @@ void UMenu::SetupMenu()
 		}
 	}
 }
+
+void UMenu::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
+{
+	UWorld* World = GetWorld();
+	if (World) {
+		APlayerController* PC = World->GetFirstPlayerController();
+		if (PC) {
+			FInputModeGameOnly InputMode;
+			PC->SetInputMode(InputMode);
+			PC->SetShowMouseCursor(false);
+		}
+	}
+
+	// This function will call RemoveFromParent so we don't have to
+	Super::OnLevelRemovedFromWorld(InLevel, InWorld);
+}

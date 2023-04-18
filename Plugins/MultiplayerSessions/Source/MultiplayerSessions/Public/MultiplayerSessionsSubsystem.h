@@ -20,16 +20,19 @@
 #include "MultiplayerSessionsSubsystem.generated.h"
 
 
+// All custom session settings
 enum ESessionSettings {
 	GameMode,
 
 	ESessionSettingsSize,
 };
 
+// All gamemodes
+UENUM()
 enum EGameModes {
-	Default,
+	Default UMETA(DisplayName = "Default"),
 
-	EGameModesSize,
+	EGameModesSize UMETA(DisplayName = "EGameModesSize"),
 };
 
 /**
@@ -52,6 +55,9 @@ public:
 	void FindSessions(int MaxSearchResults);
 	void JoinSession(const FOnlineSessionSearchResult& SearchResults);
 	void DestroySession();
+
+	UFUNCTION(BlueprintCallable)
+	void HostLobby(int NumPublicConnections, EGameModes GameMode, const FString& LobbyMapURL);
 
 
 protected:

@@ -19,5 +19,5 @@ public:
 protected:
 	void SetupMenu();
 
-	
+	virtual void OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld) override;
 };

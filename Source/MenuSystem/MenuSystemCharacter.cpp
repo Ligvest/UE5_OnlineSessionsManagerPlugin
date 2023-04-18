@@ -107,8 +107,8 @@ void AMenuSystemCharacter::CreateGameSession()
 		{
 			// Debug
 			DEBUG_MESSAGE(FString(TEXT("SessionsSubsystem OK.")), FColor::Green);
-
-			SessionsSubsystemHelper->CreateSession(4, EGameModes::Default);
+			
+			SessionsSubsystemHelper->HostLobby(4, EGameModes::Default, FString(TEXT("/Game/Maps/Lobby?listen")));
 		}
 	}
 }
