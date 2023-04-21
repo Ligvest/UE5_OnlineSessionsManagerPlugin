@@ -53,7 +53,7 @@ public:
 	void CreateSession(int NumPublicConnections, EGameModes GameMode);
 	void StartSession();
 	void FindSessions(int MaxSearchResults);
-	void JoinSession(const FOnlineSessionSearchResult& SearchResults);
+	void JoinSession(const FOnlineSessionSearchResult& SearchResult);
 	void DestroySession();
 
 	UFUNCTION(BlueprintCallable)

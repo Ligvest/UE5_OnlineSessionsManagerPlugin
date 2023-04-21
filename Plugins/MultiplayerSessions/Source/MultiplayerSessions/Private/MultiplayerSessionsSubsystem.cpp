@@ -93,9 +93,19 @@ void UMultiplayerSessionsSubsystem::FindSessions(int MaxSearchResults)
 	OnlineSessionPtr->FindSessions(0, SessionsSearchSettingsPtr.ToSharedRef());
 }
 
-void UMultiplayerSessionsSubsystem::JoinSession(const FOnlineSessionSearchResult& SearchResults)
+void UMultiplayerSessionsSubsystem::JoinSession(const FOnlineSessionSearchResult& SearchResult)
 {
+	if (!OnlineSessionPtr.IsValid()) {
+		return;
+	}
 
+	if (!OnJoinSessionCompleteDelegateHandle.IsValid()) {
+		OnJoinSessionCompleteDelegateHandle = OnlineSessionPtr->AddOnJoinSessionCompleteDelegate_Handle(OnJoinSessionCompleteDelegate);
+	}
+
+	// Debug
+	//DEBUG_MESSAGE(FString(TEXT("Trying to join a session...")), FColor::Yellow);
+	OnlineSessionPtr->JoinSession(0, CurrentSessionName, SearchResult);
 }
 
 void UMultiplayerSessionsSubsystem::DestroySession()
@@ -143,18 +153,42 @@ void UMultiplayerSessionsSubsystem::OnFindSessionsComplete(bool bWasSuccessful)
 		FString OwnerName = SearchResult.Session.OwningUserName;
 		FString GameMode{};
 		SearchResult.Session.SessionSettings.Get(SessionSettingsKeys[ESessionSettings::GameMode], GameMode);
-		if (GameMode.Equals(GameModesArray[EGameModes::Default])) {
-			//Some staff with the concrete gamemode
-		}
 
 		// Debug
 		DEBUG_MESSAGE(FString::Printf(TEXT("Owner name: %s, Game mode: %s"), *OwnerName, *GameMode), FColor::Yellow);
+
+		if (GameMode.Equals(GameModesArray[EGameModes::Default])) {
+			// Debug
+			DEBUG_MESSAGE(FString::Printf(TEXT("Trying to join the first suitable game...")), FColor::Yellow);
+			JoinSession(SearchResult);
+		}
 	}
 }
 
 void UMultiplayerSessionsSubsystem::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type JoinSessionResult)
 {
+	if (JoinSessionResult != EOnJoinSessionCompleteResult::Type::Success) {
+		// Debug
+		DEBUG_MESSAGE(FString::Printf(TEXT("Couldn't join. The reason: %s"), LexToString(JoinSessionResult)), FColor::Red);
+		return;
+	}
 
+	if (!OnlineSessionPtr.IsValid()) {
+		return;
+	}
+
+
+	FString ServerAddress{};
+	OnlineSessionPtr->GetResolvedConnectString(CurrentSessionName, ServerAddress);
+
+	APlayerController* PC = GetGameInstance()->GetFirstLocalPlayerController();
+	if (PC) {
+		PC->ClientTravel(ServerAddress, ETravelType::TRAVEL_Absolute);
+	}
+
+
+	// Debug
+	DEBUG_MESSAGE(FString::Printf(TEXT("Successfuly joined a session")), FColor::Green);
 }
 
 void UMultiplayerSessionsSubsystem::OnDestroySessionComplete(FName SessionName, bool bWasSuccessful)
