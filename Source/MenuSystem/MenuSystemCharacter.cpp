@@ -16,7 +16,7 @@
 
 AMenuSystemCharacter::AMenuSystemCharacter() :
 	OnCreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnCreateSessionComplete)),
-	OnFindSessionsCompleteDelegate(FOnFindSessionsCompleteDelegate::CreateUObject(this, &ThisClass::OnFindSessionsComplete)),
+	//OnFindSessionsCompleteDelegate(FOnFindSessionsCompleteDelegate::CreateUObject(this, &ThisClass::OnFindSessionsComplete)),
 	OnJoinSessionCompleteDelegate(FOnJoinSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnJoinSessionComplete))
 {
 	// Set size for collision capsule
@@ -60,15 +60,20 @@ AMenuSystemCharacter::AMenuSystemCharacter() :
 	if (OnlineSubsystem) {
 		//OnlineSubsystem->GetOnlineServiceName();
 		OnlineSessionPtr = OnlineSubsystem->GetSessionInterface();
-		if (GEngine) {
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				15.f,
-				FColor::Cyan,
-				FString::Printf(TEXT("Found subsystem is %s"), *OnlineSubsystem->GetSubsystemName().ToString()));
-		}
+
+		// Debug
+		DEBUG_MESSAGE(FString::Printf(TEXT("Found subsystem is %s"), *OnlineSubsystem->GetSubsystemName().ToString()), FColor::Cyan);
 
 
+	}
+
+	UMultiplayerSessionsSubsystem* SessionsHelper = GetOnlineSessionsHelper();
+	if (SessionsHelper) {
+		SessionsHelper->OnFindSessionsResultReadyDelegate.AddUObject(this, &ThisClass::OnFindSessionsComplete);
+	}
+	else {
+		// Debug
+		DEBUG_MESSAGE(FString(TEXT("AMenuSystemCharacter::AMenuSystemCharacter(). SessionsHelper is nullptr")), FColor::Red);
 	}
 }
 
@@ -100,32 +105,21 @@ void AMenuSystemCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 
 void AMenuSystemCharacter::CreateGameSession()
 {
-	UGameInstance* GameInstance = GetGameInstance();
-	if (GameInstance) {
-		UMultiplayerSessionsSubsystem* SessionsSubsystemHelper = GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
-		if (SessionsSubsystemHelper)
-		{
-			// Debug
-			DEBUG_MESSAGE(FString(TEXT("SessionsSubsystem OK.")), FColor::Green);
-			
-			SessionsSubsystemHelper->HostLobby(4, EGameModes::Default, FString(TEXT("/Game/Maps/Lobby?listen")));
-		}
+	UMultiplayerSessionsSubsystem* SessionsSubsystemHelper = GetOnlineSessionsHelper();
+	if (SessionsSubsystemHelper)
+	{
+		// Debug
+		DEBUG_MESSAGE(FString(TEXT("SessionsSubsystem OK.")), FColor::Green);
+
+		SessionsSubsystemHelper->HostLobby(4, EGameModes::EGM_Default, FString(TEXT("/Game/Maps/Lobby?listen")));
 	}
 }
 
-void AMenuSystemCharacter::JoinGameSession()
+void AMenuSystemCharacter::JoinGameSession(const FOnlineSessionSearchResult& SessionToJoin)
 {
-	UGameInstance* GameInstance = GetGameInstance();
-	if (GameInstance) {
-		UMultiplayerSessionsSubsystem* SessionsSubsystemHelper = GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
-		if (SessionsSubsystemHelper)
-		{
-			// Debug
-			DEBUG_MESSAGE(FString(TEXT("SessionsSubsystem OK.")), FColor::Green);
-
-			SessionsSubsystemHelper->FindSessions(10000);
-		}
-	}
+	// Debug
+	DEBUG_MESSAGE(FString::Printf(TEXT("Trying to join the first suitable game...")), FColor::Yellow);
+	//JoinSession(SessionToJoin);
 }
 
 void AMenuSystemCharacter::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
@@ -158,81 +152,22 @@ void AMenuSystemCharacter::OnCreateSessionComplete(FName SessionName, bool bWasS
 
 }
 
-void AMenuSystemCharacter::OnFindSessionsComplete(bool bWasSuccessful)
+void AMenuSystemCharacter::OnFindSessionsComplete(const TArray<FOnlineSessionSearchResult>& SearchResults, bool bWasSuccessful)
 {
+	if (bWasSuccessful) {
+		/* Refresh the widget which contains a list of sessions */
+		for (const FOnlineSessionSearchResult& SearchResult : SearchResults) {
+			FString OwnerName = SearchResult.Session.OwningUserName;
+			FString GameMode{};
 
-	//if (!OnlineSessionInterfacePtr.IsValid()) {
-	//	return;
-	// }
- //
-	//	if (GEngine) {
-	//		GEngine->AddOnScreenDebugMessage(
-	//			-1,
-	//			5.f,
-	//			FColor::Orange,
-	//			FString::Printf(TEXT("Search completed."))
-	//		);
-	//	}
+			//SearchResult.Session.SessionSettings.Get(SessionSettingsKeys[ESessionSettings::ESS_GameMode], GameMode);
 
-	//for (FOnlineSessionSearchResult& SearchResult : SessionSearchSettingsPtr->SearchResults) {
-	//	
-	//	//Info about found sessions
-	//	if (GEngine) {
-	//		GEngine->AddOnScreenDebugMessage(
-	//			-1,
-	//			5.f,
-	//			FColor::Orange,
-	//			FString::Printf(TEXT("Found session. ID: %s, Owner: %s"), *SearchResult.GetSessionIdStr(), *SearchResult.Session.OwningUserName)
-	//		);
-	//	}
+			// Debug
+			DEBUG_MESSAGE(FString::Printf(TEXT("Owner name: %s, Game mode: %s"), *OwnerName, *GameMode), FColor::Yellow);
 
-	//	// Match the correct match type
-	//	FName MatchTypeKey = FName(TEXT("MatchType"));
-	//	FString MatchTypeValue;
-	//	SearchResult.Session.SessionSettings.Get(MatchTypeKey, MatchTypeValue);
-	//	if (MatchTypeValue.Equals(TEXT("DefaultLigvest"))) {
-	//		OnlineSessionInterfacePtr->AddOnJoinSessionCompleteDelegate_Handle(OnJoinSessionCompleteDelegate);
-
-	//	if (GEngine) {
-	//		GEngine->AddOnScreenDebugMessage(
-	//			-1,
-	//			5.f,
-	//			FColor::Orange,
-	//			FString::Printf(TEXT("Found matched session. ID: %s, Owner: %s"), *SearchResult.GetSessionIdStr(), *SearchResult.Session.OwningUserName)
-	//		);
-	//	}
-
-	//		// Join session
-	//		ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-	//		//OnlineSessionInterfacePtr->JoinSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, SearchResult);
-	//		if (GEngine) {
-	//			GEngine->AddOnScreenDebugMessage(
-	//				-1,
-	//				5.f,
-	//				FColor::Orange,
-	//				FString::Printf(TEXT("Joining..."))
-	//			);
-	//		}
-	//	}
-	//}
-
-
-	if (SessionsSearchSettingsPtr->SearchState == EOnlineAsyncTaskState::Failed) {
-		// Debug
-		DEBUG_MESSAGE(FString(TEXT("Session search failed. Return")), FColor::Red);
-		return;
-	}
-
-		// Debug
-		DEBUG_MESSAGE(FString(TEXT("Session search finished. Found results:")), FColor::Green);
-
-	for (const FOnlineSessionSearchResult& SearchResult : SessionsSearchSettingsPtr->SearchResults) {
-		FString OwnerName = SearchResult.Session.OwningUserName;
-		FString GameMode{};
-		//SearchResult.Session.SessionSettings.Get(SessionSettingsKeys[ESessionSettings::GameMode], GameMode);
-
-		// Debug
-		DEBUG_MESSAGE(FString::Printf(TEXT("Owner name: %s, Game mode: %s"), *OwnerName, *GameMode), FColor::Yellow);
+			//if (GameMode.Equals(GameModesArray[EGameModes::EGM_Default])) {
+			//}
+		}
 	}
 }
 
@@ -266,6 +201,18 @@ void AMenuSystemCharacter::OnJoinSessionComplete(FName SessionName, EOnJoinSessi
 
 		PC->ClientTravel(JoinedSessionAddress, ETravelType::TRAVEL_Absolute);
 	}
+}
+
+inline UMultiplayerSessionsSubsystem* AMenuSystemCharacter::GetOnlineSessionsHelper()
+{
+	// Check GetWorld() as GetGameInstance() function use this call too but doesn't check if GetWorld() returns nullptr
+	if (GetWorld()) {
+		UGameInstance* GameInstance = GetGameInstance();
+		if (GameInstance) {
+			return GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
+		}
+	}
+	return nullptr;
 }
 
 void AMenuSystemCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)

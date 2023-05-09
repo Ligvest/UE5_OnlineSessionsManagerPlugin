@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/OnlineSessionInterface.h"
+#include "MultiplayerSessionsSubsystem.h"
 
 #include "MenuSystemCharacter.generated.h"
 
@@ -73,8 +74,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CreateGameSession();
 
-	UFUNCTION(BlueprintCallable)
-	void JoinGameSession();
+	//UFUNCTION(BlueprintCallable)
+	void JoinGameSession(const FOnlineSessionSearchResult& SessionToJoin);
+
+	class FOnlineSessionSearchResult* CurrentSession;
+
+	//UFUNCTION(BlueprintCallable)
+	//void FindSessions(int MaxEntriesNumber, const FSearchFilter& Filter);
+
+	void OnFindSessionsComplete(const TArray<FOnlineSessionSearchResult>& SearchResults, bool bWasSuccessful);
+
 
 	FOnCreateSessionCompleteDelegate OnCreateSessionCompleteDelegate;
 	FOnFindSessionsCompleteDelegate OnFindSessionsCompleteDelegate;
@@ -83,7 +92,9 @@ public:
 	TSharedPtr<FOnlineSessionSearch> SessionsSearchSettingsPtr;
 
 	void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
-	void OnFindSessionsComplete(bool bWasSuccessful);
+	//void OnFindSessionsComplete(bool bWasSuccessful);
 	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type JoinSessionResult);
+
+	inline class UMultiplayerSessionsSubsystem* GetOnlineSessionsHelper();
 };
 

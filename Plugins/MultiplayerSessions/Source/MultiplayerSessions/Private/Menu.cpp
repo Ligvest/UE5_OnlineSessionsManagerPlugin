@@ -22,7 +22,7 @@ void UMenu::SetupMenu()
 	}
 }
 
-void UMenu::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
+void UMenu::BeforeRemoval()
 {
 	UWorld* World = GetWorld();
 	if (World) {
@@ -33,7 +33,57 @@ void UMenu::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
 			PC->SetShowMouseCursor(false);
 		}
 	}
+}
+
+void UMenu::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
+{
+	BeforeRemoval();
 
 	// This function will call RemoveFromParent so we don't have to
 	Super::OnLevelRemovedFromWorld(InLevel, InWorld);
 }
+
+
+UMultiplayerSessionsSubsystem* UMenu::GetSessionsSubsystem()
+{
+	// Check GetWorld() as GetGameInstance() function use this call too but doesn't check if GetWorld() returns nullptr
+	if (GetWorld()) {
+		UGameInstance* GameInstance = GetGameInstance();
+		if (GameInstance) {
+			return GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
+		}
+	}
+	return nullptr;
+
+}
+
+void UMenu::CreateGameSession()
+{
+	UMultiplayerSessionsSubsystem* SessionsSubsystem = GetSessionsSubsystem();
+	if (SessionsSubsystem)
+	{
+		// Debug
+		DEBUG_MESSAGE(FString(TEXT("SessionsSubsystem OK.")), FColor::Green);
+
+		SessionsSubsystem->HostLobby(4, EGameModes::EGM_Default, FString(TEXT("/Game/Maps/Lobby?listen")));
+	}
+}
+
+
+void UMenu::FindSessions(int MaxEntriesNumber, const FSearchFilter& Filter)
+{
+	UMultiplayerSessionsSubsystem* SessionsSubsystem = GetSessionsSubsystem();
+	if (SessionsSubsystem)
+	{
+		// Debug
+		DEBUG_MESSAGE(FString(TEXT("SessionsSubsystem OK.")), FColor::Green);
+
+		//FSearchFilter Filter;
+		//Filter.GameMode = EGameModes::EGM_Default;
+
+		SessionsSubsystem->FindSessions(MaxEntriesNumber, Filter);
+	}
+}
+
+
+

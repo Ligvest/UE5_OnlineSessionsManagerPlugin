@@ -22,11 +22,11 @@ UMultiplayerSessionsSubsystem::UMultiplayerSessionsSubsystem():
 
 	// Initializing custom Session settings
 	SessionSettingsKeys.SetNum(ESessionSettings::ESessionSettingsSize);
-	SessionSettingsKeys[ESessionSettings::GameMode] = FName(TEXT("GameMode"));
+	SessionSettingsKeys[ESessionSettings::ESS_GameMode] = FName(TEXT("GameMode"));
 
 	// Initializing list of game modes
 	GameModesArray.SetNum(EGameModes::EGameModesSize);
-	GameModesArray[EGameModes::Default] = FString(TEXT("DefaultMode"));
+	GameModesArray[EGameModes::EGM_Default] = FString(TEXT("DefaultMode"));
 }
 
 void UMultiplayerSessionsSubsystem::CreateSession(int NumPublicConnections, EGameModes GameMode)
@@ -60,7 +60,7 @@ void UMultiplayerSessionsSubsystem::CreateSession(int NumPublicConnections, EGam
 	SessionSettingsPtr->bAllowInvites = true;
 	SessionSettingsPtr->bIsDedicated = false;
 	//SessionSettingsPtr->bAllowJoinViaPresenceFriendsOnly = true; // Can't find the session when this parameter is true
-	SessionSettingsPtr->Set(SessionSettingsKeys[ESessionSettings::GameMode], GameModesArray[EGameModes::Default], EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+	SessionSettingsPtr->Set(SessionSettingsKeys[ESessionSettings::ESS_GameMode], GameModesArray[EGameModes::EGM_Default], EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
 	OnlineSessionPtr->CreateSession(0, CurrentSessionName, *SessionSettingsPtr);
 	// Here the lector checks for success of session creation and clean up 
@@ -72,7 +72,7 @@ void UMultiplayerSessionsSubsystem::StartSession()
 
 }
 
-void UMultiplayerSessionsSubsystem::FindSessions(int MaxSearchResults)
+void UMultiplayerSessionsSubsystem::FindSessions(int MaxSearchResults,  const FSearchFilter& Filter)
 {
 	if (!OnlineSessionPtr.IsValid()) {
 		return;
@@ -115,7 +115,7 @@ void UMultiplayerSessionsSubsystem::DestroySession()
 
 void UMultiplayerSessionsSubsystem::HostLobby(int NumPublicConnections, EGameModes GameMode, const FString& LobbyMapURL)
 {
-	CreateSession(4, EGameModes::Default);
+	CreateSession(4, EGameModes::EGM_Default);
 	UWorld* World = GetWorld();
 	if (World) {
 		World->ServerTravel(LobbyMapURL);
@@ -149,20 +149,22 @@ void UMultiplayerSessionsSubsystem::OnFindSessionsComplete(bool bWasSuccessful)
 	// Debug
 	DEBUG_MESSAGE(FString(TEXT("Session search finished. Found results:")), FColor::Green);
 
-	for (const FOnlineSessionSearchResult& SearchResult : SessionsSearchSettingsPtr->SearchResults) {
-		FString OwnerName = SearchResult.Session.OwningUserName;
-		FString GameMode{};
-		SearchResult.Session.SessionSettings.Get(SessionSettingsKeys[ESessionSettings::GameMode], GameMode);
+	//for (const FOnlineSessionSearchResult& SearchResult : SessionsSearchSettingsPtr->SearchResults) {
+	//	FString OwnerName = SearchResult.Session.OwningUserName;
+	//	FString GameMode{};
+	//	SearchResult.Session.SessionSettings.Get(SessionSettingsKeys[ESessionSettings::GameMode], GameMode);
 
-		// Debug
-		DEBUG_MESSAGE(FString::Printf(TEXT("Owner name: %s, Game mode: %s"), *OwnerName, *GameMode), FColor::Yellow);
+	//	// Debug
+	//	DEBUG_MESSAGE(FString::Printf(TEXT("Owner name: %s, Game mode: %s"), *OwnerName, *GameMode), FColor::Yellow);
 
-		if (GameMode.Equals(GameModesArray[EGameModes::Default])) {
-			// Debug
-			DEBUG_MESSAGE(FString::Printf(TEXT("Trying to join the first suitable game...")), FColor::Yellow);
-			JoinSession(SearchResult);
-		}
-	}
+	//	if (GameMode.Equals(GameModesArray[EGameModes::Default])) {
+	//		// Debug
+	//		//DEBUG_MESSAGE(FString::Printf(TEXT("Trying to join the first suitable game...")), FColor::Yellow);
+	//		//JoinSession(SearchResult);
+	//	}
+	//}
+
+	OnFindSessionsResultReadyDelegate.Broadcast(SessionsSearchSettingsPtr->SearchResults, bWasSuccessful);
 }
 
 void UMultiplayerSessionsSubsystem::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type JoinSessionResult)

@@ -19,10 +19,12 @@
 
 #include "MultiplayerSessionsSubsystem.generated.h"
 
+// Delegates to pass info from this class to its users.
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnFindSessionsResultReady, const TArray<FOnlineSessionSearchResult>& SearchResults, bool bWasSuccessful);
 
 // All custom session settings
 enum ESessionSettings {
-	GameMode,
+	ESS_GameMode,
 
 	ESessionSettingsSize,
 };
@@ -30,9 +32,20 @@ enum ESessionSettings {
 // All gamemodes
 UENUM()
 enum EGameModes {
-	Default UMETA(DisplayName = "Default"),
+	EGM_Default UMETA(DisplayName = "Default"),
 
 	EGameModesSize UMETA(DisplayName = "EGameModesSize"),
+};
+
+// A filter to reduce a number of found entries
+USTRUCT(BlueprintType)
+struct FSearchFilter 
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadWrite)
+	TEnumAsByte<EGameModes> GameMode = EGameModes::EGM_Default;
 };
 
 /**
@@ -52,12 +65,14 @@ public:
 public:
 	void CreateSession(int NumPublicConnections, EGameModes GameMode);
 	void StartSession();
-	void FindSessions(int MaxSearchResults);
+	void FindSessions(int MaxSearchResults, const FSearchFilter& Filter);
 	void JoinSession(const FOnlineSessionSearchResult& SearchResult);
 	void DestroySession();
 
 	UFUNCTION(BlueprintCallable)
 	void HostLobby(int NumPublicConnections, EGameModes GameMode, const FString& LobbyMapURL);
+
+	FOnFindSessionsResultReady OnFindSessionsResultReadyDelegate;
 
 
 protected:
