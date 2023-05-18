@@ -7,14 +7,13 @@
 
 void UFoundSessionListViewEntry::FillWithData(UObject* ListItemObject)
 {
-	//UFoundSessionData* SessionData = Cast<UFoundSessionData*>(ListItemObject);
-	UFoundSessionData* SessionData = dynamic_cast<UFoundSessionData*>(ListItemObject);
-
-
 	FText NewText = FText::FromString(TEXT("ERROR: Passed not SessionData type"));
 	int NewIndex = -1;
+	MenuReference = nullptr;
+
+	UFoundSessionData* SessionData = dynamic_cast<UFoundSessionData*>(ListItemObject);
+
 	if (SessionData) {
-		//Text_SessionShortDescription->SetText(FText(TEXT("Hello from C++ and bound variable")));
 		NewText = FText::FromString(SessionData->ShortDescription);
 		NewIndex = SessionData->Index;
 		MenuReference = SessionData->MenuReference;
