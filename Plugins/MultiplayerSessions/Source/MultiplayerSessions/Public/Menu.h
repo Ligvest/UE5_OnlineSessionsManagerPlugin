@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "MultiplayerSessionsSubsystem.h"
+#include "OnlineSessionSettings.h"
+
 #include "Menu.generated.h"
 
 /**
@@ -30,14 +32,26 @@ protected:
 	inline class UMultiplayerSessionsSubsystem* GetSessionsSubsystem();
 
 	UFUNCTION(BlueprintCallable)
-	void CreateGameSession();
+	void HostSession();
 
 	UFUNCTION(BlueprintCallable)
-	void FindSessions(int MaxEntriesNumber, const FSearchFilter& Filter);
+	void SearchSessions(int MaxEntriesNumber, const FSearchFilter& Filter);
+
+	UFUNCTION(BlueprintCallable)
+	void JoinSession(int32 ID);//const UFoundSessionData* SessionToJoin);
+
+	void OnSearchSessionsComplete(TArray<FOnlineSessionSearchResult> SearchResults, bool bWasSuccessful);
+
+	TArray<FOnlineSessionSearchResult> RecentSearchResults;
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UListView* ListView_Sessions;
+
+	//TArray<UFoundSessionData> FoundSessionDataArray;
 
 	//UFUNCTION(BlueprintCallable)
-	//void JoinGameSession(const FOnlineSessionSearchResult& SessionToJoin);
+	//void JoinSession(const FOnlineSessionSearchResult* SessionToJoin);
 
 	//class FOnlineSessionSearchResult* CurrentSession;
-
 };

@@ -69,7 +69,7 @@ AMenuSystemCharacter::AMenuSystemCharacter() :
 
 	UMultiplayerSessionsSubsystem* SessionsHelper = GetOnlineSessionsHelper();
 	if (SessionsHelper) {
-		SessionsHelper->OnFindSessionsResultReadyDelegate.AddUObject(this, &ThisClass::OnFindSessionsComplete);
+		//SessionsHelper->OnFindSessionsResultReadyDelegate.AddUObject(this, &ThisClass::OnFindSessionsComplete);
 	}
 	else {
 		// Debug

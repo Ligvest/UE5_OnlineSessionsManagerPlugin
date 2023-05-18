@@ -20,7 +20,8 @@
 #include "MultiplayerSessionsSubsystem.generated.h"
 
 // Delegates to pass info from this class to its users.
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnFindSessionsResultReady, const TArray<FOnlineSessionSearchResult>& SearchResults, bool bWasSuccessful);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnFindSessionsResultReady, const TArray<UFoundSessionData*>&, SearchResults, bool, bWasSuccessful);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnFindSessionsResultReady, TArray<FOnlineSessionSearchResult> SearchResults, bool bWasSuccessful);
 
 // All custom session settings
 enum ESessionSettings {
@@ -74,6 +75,10 @@ public:
 
 	FOnFindSessionsResultReady OnFindSessionsResultReadyDelegate;
 
+	// Convert Enumeration values to strings
+	TArray<FName, TFixedAllocator<ESessionSettings::ESessionSettingsSize>> SessionSettingsKeys;
+	TArray<FString, TFixedAllocator<EGameModes::EGameModesSize>> GameModesArray;
+
 
 protected:
 	// On sessions operations complete callbacks
@@ -106,7 +111,6 @@ private:
 
 	FName CurrentSessionName;
 	FName SubsystemName;
-	TArray<FName, TFixedAllocator<ESessionSettings::ESessionSettingsSize>> SessionSettingsKeys;
-	TArray<FString, TFixedAllocator<EGameModes::EGameModesSize>> GameModesArray;
+
 };
 

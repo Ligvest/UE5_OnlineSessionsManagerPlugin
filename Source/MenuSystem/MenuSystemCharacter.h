@@ -77,7 +77,7 @@ public:
 	//UFUNCTION(BlueprintCallable)
 	void JoinGameSession(const FOnlineSessionSearchResult& SessionToJoin);
 
-	class FOnlineSessionSearchResult* CurrentSession;
+	//class FOnlineSessionSearchResult* CurrentSession;
 
 	//UFUNCTION(BlueprintCallable)
 	//void FindSessions(int MaxEntriesNumber, const FSearchFilter& Filter);

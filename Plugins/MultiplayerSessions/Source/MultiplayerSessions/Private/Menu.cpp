@@ -2,6 +2,8 @@
 
 
 #include "Menu.h"
+#include "Components/ListView.h"
+#include "FoundSessionData.h"
 
 void UMenu::SetupMenu()
 {
@@ -19,6 +21,11 @@ void UMenu::SetupMenu()
 			PC->SetInputMode(InputMode);
 			PC->SetShowMouseCursor(true);
 		}
+	}
+
+	UMultiplayerSessionsSubsystem* SessionsSubsystem = GetSessionsSubsystem();
+	if (SessionsSubsystem) {
+		SessionsSubsystem->OnFindSessionsResultReadyDelegate.AddUObject(this, &ThisClass::OnSearchSessionsComplete);
 	}
 }
 
@@ -57,7 +64,7 @@ UMultiplayerSessionsSubsystem* UMenu::GetSessionsSubsystem()
 
 }
 
-void UMenu::CreateGameSession()
+void UMenu::HostSession()
 {
 	UMultiplayerSessionsSubsystem* SessionsSubsystem = GetSessionsSubsystem();
 	if (SessionsSubsystem)
@@ -70,7 +77,7 @@ void UMenu::CreateGameSession()
 }
 
 
-void UMenu::FindSessions(int MaxEntriesNumber, const FSearchFilter& Filter)
+void UMenu::SearchSessions(int MaxEntriesNumber, const FSearchFilter& Filter)
 {
 	UMultiplayerSessionsSubsystem* SessionsSubsystem = GetSessionsSubsystem();
 	if (SessionsSubsystem)
@@ -83,7 +90,53 @@ void UMenu::FindSessions(int MaxEntriesNumber, const FSearchFilter& Filter)
 
 		SessionsSubsystem->FindSessions(MaxEntriesNumber, Filter);
 	}
+
+
 }
 
+void UMenu::JoinSession(int32 ID)
+{
+	UMultiplayerSessionsSubsystem* SessionsSubsystem = GetSessionsSubsystem();
+	if (SessionsSubsystem) {
+		// Debug
+		DEBUG_MESSAGE(FString(TEXT("UMenu::JoinSession")), FColor::Green);
+		SessionsSubsystem->JoinSession(RecentSearchResults[ID]);
+	}
+}
 
+void UMenu::OnSearchSessionsComplete(TArray<FOnlineSessionSearchResult> SearchResults, bool bWasSuccessful)
+{
+	// Debug
+	DEBUG_MESSAGE(FString(TEXT("UMenu::OnSearchSessionsComplete")), FColor::Green);
+
+	UMultiplayerSessionsSubsystem* SessionsSubsystem = GetSessionsSubsystem();
+	if (SessionsSubsystem) {
+		RecentSearchResults = SearchResults;
+		//for (const FOnlineSessionSearchResult& SearchResult : SearchResults) {
+		for (int32 Index = 0; Index < RecentSearchResults.Num(); ++Index) {
+
+			// Getting info from SearchResult
+			FOnlineSessionSearchResult SearchResult = RecentSearchResults[Index];
+			FString OwnerName = SearchResult.Session.OwningUserName;
+			FString GameMode{};
+
+			const auto& SessionSettingsKeys = SessionsSubsystem->SessionSettingsKeys;
+			const auto& GameModesArray = SessionsSubsystem->GameModesArray;
+
+			SearchResult.Session.SessionSettings.Get(SessionSettingsKeys[ESessionSettings::ESS_GameMode], GameMode);
+
+			// Filling Listview Item
+			UFoundSessionData* SessionData = NewObject<UFoundSessionData>(this, UFoundSessionData::StaticClass());
+			SessionData->ShortDescription = FString::Printf(TEXT("Owner name: %s, Game mode: %s"), *OwnerName, *GameMode);
+			SessionData->Index = Index;
+			SessionData->MenuReference = this;
+			if (ListView_Sessions) {
+				ListView_Sessions->AddItem(SessionData);
+			}
+
+			if (GameMode.Equals(GameModesArray[EGameModes::EGM_Default])) {
+			}
+		}
+	}
+}
 

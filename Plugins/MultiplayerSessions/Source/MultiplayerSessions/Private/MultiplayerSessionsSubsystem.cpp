@@ -3,6 +3,7 @@
 #include "MultiplayerSessionsSubsystem.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
+#include "FoundSessionData.h"
 
 UMultiplayerSessionsSubsystem::UMultiplayerSessionsSubsystem():
 	OnCreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnCreateSessionComplete)),
@@ -149,20 +150,7 @@ void UMultiplayerSessionsSubsystem::OnFindSessionsComplete(bool bWasSuccessful)
 	// Debug
 	DEBUG_MESSAGE(FString(TEXT("Session search finished. Found results:")), FColor::Green);
 
-	//for (const FOnlineSessionSearchResult& SearchResult : SessionsSearchSettingsPtr->SearchResults) {
-	//	FString OwnerName = SearchResult.Session.OwningUserName;
-	//	FString GameMode{};
-	//	SearchResult.Session.SessionSettings.Get(SessionSettingsKeys[ESessionSettings::GameMode], GameMode);
 
-	//	// Debug
-	//	DEBUG_MESSAGE(FString::Printf(TEXT("Owner name: %s, Game mode: %s"), *OwnerName, *GameMode), FColor::Yellow);
-
-	//	if (GameMode.Equals(GameModesArray[EGameModes::Default])) {
-	//		// Debug
-	//		//DEBUG_MESSAGE(FString::Printf(TEXT("Trying to join the first suitable game...")), FColor::Yellow);
-	//		//JoinSession(SearchResult);
-	//	}
-	//}
 
 	OnFindSessionsResultReadyDelegate.Broadcast(SessionsSearchSettingsPtr->SearchResults, bWasSuccessful);
 }
