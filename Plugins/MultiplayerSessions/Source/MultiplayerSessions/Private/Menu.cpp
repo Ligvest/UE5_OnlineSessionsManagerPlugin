@@ -82,7 +82,7 @@ void UMenu::SearchSessions(int MaxEntriesNumber, const FSearchFilter& Filter)
 	UMultiplayerSessionsSubsystem* SessionsSubsystem = GetSessionsSubsystem();
 	if (SessionsSubsystem)
 	{
-		DEBUG_MESSAGE(FString(TEXT("SessionsSubsystem OK.")), FColor::Green);
+		DEBUG_MESSAGE(FString(TEXT("UMenu::SearchSessions")), FColor::Green);
 
 		//FSearchFilter Filter;
 		//Filter.GameMode = EGameModes::EGM_Default;
@@ -97,6 +97,15 @@ void UMenu::JoinSession(int32 ID)
 	if (SessionsSubsystem) {
 		DEBUG_MESSAGE(FString(TEXT("UMenu::JoinSession")), FColor::Green);
 		SessionsSubsystem->JoinSession(RecentSearchResults[ID]);
+	}
+}
+
+void UMenu::Disconnect()
+{
+	UMultiplayerSessionsSubsystem* SessionsSubsystem = GetSessionsSubsystem();
+	if (SessionsSubsystem) {
+		DEBUG_MESSAGE(FString(TEXT("UMenu::Disconnect")), FColor::Green);
+		SessionsSubsystem->Disconnect();
 	}
 }
 

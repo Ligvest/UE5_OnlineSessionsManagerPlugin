@@ -8,21 +8,6 @@
 
 #include "FoundSessionListViewEntry.generated.h"
 
-
-// A filter to reduce a number of found entries
-// Maybe will be implemented later if needed
-USTRUCT(BlueprintType)
-struct FFoundSessionListViewEntryData 
-{
-	GENERATED_BODY()
-
-public:
-	FString Text;
-
-	//UPROPERTY(BlueprintReadWrite)
-	//TEnumAsByte<EGameModes> GameMode = EGameModes::EGM_Default;
-};
-
 /**
  * A class that represents ListViewItem with session info in ListViewWidget
  * 

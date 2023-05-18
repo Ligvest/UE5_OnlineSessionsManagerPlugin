@@ -48,6 +48,11 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void SearchSessions(int MaxEntriesNumber, const FSearchFilter& Filter);
 
+	// To Implement: Should destroy a session 
+	// and travel a player back to main menu
+	UFUNCTION(BlueprintCallable)
+	void Disconnect();
+
 
 	// Function to work with search results after SearchSessions completed
 	void OnSearchSessionsComplete(TArray<FOnlineSessionSearchResult> SearchResults, bool bWasSuccessful);
