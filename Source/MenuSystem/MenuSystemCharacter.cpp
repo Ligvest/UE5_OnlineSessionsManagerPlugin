@@ -14,10 +14,7 @@
 //////////////////////////////////////////////////////////////////////////
 // AMenuSystemCharacter
 
-AMenuSystemCharacter::AMenuSystemCharacter() :
-	OnCreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnCreateSessionComplete)),
-	//OnFindSessionsCompleteDelegate(FOnFindSessionsCompleteDelegate::CreateUObject(this, &ThisClass::OnFindSessionsComplete)),
-	OnJoinSessionCompleteDelegate(FOnJoinSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnJoinSessionComplete))
+AMenuSystemCharacter::AMenuSystemCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -53,28 +50,16 @@ AMenuSystemCharacter::AMenuSystemCharacter() :
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	// Redundant line
+	// If I remove GetSubsystem line then will have errors in the editor 
+	// "Warning CreateExport: Failed to load Outer for resource …"
+	// So just let this magic code line be here
+	if (GetWorld()) {
+		GetGameInstance()->GetSubsystem<UMultiplayerSessionsSubsystem>();
+	}
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
-
-	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
-	if (OnlineSubsystem) {
-		//OnlineSubsystem->GetOnlineServiceName();
-		OnlineSessionPtr = OnlineSubsystem->GetSessionInterface();
-
-		// Debug
-		DEBUG_MESSAGE(FString::Printf(TEXT("Found subsystem is %s"), *OnlineSubsystem->GetSubsystemName().ToString()), FColor::Cyan);
-
-
-	}
-
-	UMultiplayerSessionsSubsystem* SessionsHelper = GetOnlineSessionsHelper();
-	if (SessionsHelper) {
-		//SessionsHelper->OnFindSessionsResultReadyDelegate.AddUObject(this, &ThisClass::OnFindSessionsComplete);
-	}
-	else {
-		// Debug
-		DEBUG_MESSAGE(FString(TEXT("AMenuSystemCharacter::AMenuSystemCharacter(). SessionsHelper is nullptr")), FColor::Red);
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -101,118 +86,6 @@ void AMenuSystemCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 	// handle touch devices
 	PlayerInputComponent->BindTouch(IE_Pressed, this, &AMenuSystemCharacter::TouchStarted);
 	PlayerInputComponent->BindTouch(IE_Released, this, &AMenuSystemCharacter::TouchStopped);
-}
-
-void AMenuSystemCharacter::CreateGameSession()
-{
-	UMultiplayerSessionsSubsystem* SessionsSubsystemHelper = GetOnlineSessionsHelper();
-	if (SessionsSubsystemHelper)
-	{
-		// Debug
-		DEBUG_MESSAGE(FString(TEXT("SessionsSubsystem OK.")), FColor::Green);
-
-		SessionsSubsystemHelper->HostLobby(4, EGameModes::EGM_Default, FString(TEXT("/Game/Maps/Lobby?listen")));
-	}
-}
-
-void AMenuSystemCharacter::JoinGameSession(const FOnlineSessionSearchResult& SessionToJoin)
-{
-	// Debug
-	DEBUG_MESSAGE(FString::Printf(TEXT("Trying to join the first suitable game...")), FColor::Yellow);
-	//JoinSession(SessionToJoin);
-}
-
-void AMenuSystemCharacter::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
-{
-	if (bWasSuccessful) {
-		if (GEngine) {
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				5.f,
-				FColor::Green,
-				FString::Printf(TEXT("Online Session has been successfuly created. Name = %s"), *SessionName.ToString())
-			);
-		}
-
-		UWorld* World = GetWorld();
-		if (World) {
-			World->ServerTravel("/Game/ThirdPerson/Maps/Lobby?listen");
-		}
-	}
-	else {
-		if (GEngine) {
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				5.f,
-				FColor::Red,
-				FString::Printf(TEXT("Online Session couldn't be created"))
-			);
-		}
-	}
-
-}
-
-void AMenuSystemCharacter::OnFindSessionsComplete(const TArray<FOnlineSessionSearchResult>& SearchResults, bool bWasSuccessful)
-{
-	if (bWasSuccessful) {
-		/* Refresh the widget which contains a list of sessions */
-		for (const FOnlineSessionSearchResult& SearchResult : SearchResults) {
-			FString OwnerName = SearchResult.Session.OwningUserName;
-			FString GameMode{};
-
-			//SearchResult.Session.SessionSettings.Get(SessionSettingsKeys[ESessionSettings::ESS_GameMode], GameMode);
-
-			// Debug
-			DEBUG_MESSAGE(FString::Printf(TEXT("Owner name: %s, Game mode: %s"), *OwnerName, *GameMode), FColor::Yellow);
-
-			//if (GameMode.Equals(GameModesArray[EGameModes::EGM_Default])) {
-			//}
-		}
-	}
-}
-
-void AMenuSystemCharacter::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type JoinSessionResult)
-{
-	if (!OnlineSessionPtr.IsValid()) {
-		return;
-	}
-		if (GEngine) {
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				5.f,
-				FColor::Orange,
-				FString::Printf(TEXT("Joined a session. SessionName = %s"), *SessionName.ToString())
-			);
-		}
-
-	FString JoinedSessionAddress;
-	OnlineSessionPtr->GetResolvedConnectString(NAME_GameSession, JoinedSessionAddress);
-
-	APlayerController* PC = GetGameInstance()->GetFirstLocalPlayerController();
-	if (PC) {
-		if (GEngine) {
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				5.f,
-				FColor::Orange,
-				FString::Printf(TEXT("Trying to connect..."))
-			);
-		}
-
-		PC->ClientTravel(JoinedSessionAddress, ETravelType::TRAVEL_Absolute);
-	}
-}
-
-inline UMultiplayerSessionsSubsystem* AMenuSystemCharacter::GetOnlineSessionsHelper()
-{
-	// Check GetWorld() as GetGameInstance() function use this call too but doesn't check if GetWorld() returns nullptr
-	if (GetWorld()) {
-		UGameInstance* GameInstance = GetGameInstance();
-		if (GameInstance) {
-			return GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
-		}
-	}
-	return nullptr;
 }
 
 void AMenuSystemCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)

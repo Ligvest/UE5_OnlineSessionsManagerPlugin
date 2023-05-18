@@ -10,48 +10,68 @@
 #include "Menu.generated.h"
 
 /**
- * 
+ * A class to be a child for Menus which implement functionality of
+ * working with sessions ( CreateSession, SearchSessions, JoinSession )
  */
 UCLASS()
 class MULTIPLAYERSESSIONS_API UMenu : public UUserWidget
 {
 	GENERATED_BODY()
 
-public:
-
+// Methods
 protected:
+	// Set the menu visible, change input mode etc.
+	// Call whenever you want to begin to interact with the menu
 	UFUNCTION(BlueprintCallable)
 	void SetupMenu();
 
+	// Before you destroy the menu you should call this 
+	// To disable visibility, change input mode back etc.
 	UFUNCTION(BlueprintCallable)
 	void BeforeRemoval();
 
-
+	// Override function which is called when current level is destroyed
 	virtual void OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld) override;
 
-	inline class UMultiplayerSessionsSubsystem* GetSessionsSubsystem();
 
+	/* Create session and move to the lobby
+	 * which is located here FString(TEXT("/Game/Maps/Lobby?listen"))
+     * To Implement: later could be added as parameter of the method
+	 */ 
 	UFUNCTION(BlueprintCallable)
 	void HostSession();
 
+	/* SearchSessions calls OnSearchSessionsComplete after the search completed
+	 * MaxEntriesNumber - Amount of results which could be found. Should be 10 000+
+	 * Filter - Some rules to specify a game we are looking for. To Implement
+	 */
 	UFUNCTION(BlueprintCallable)
 	void SearchSessions(int MaxEntriesNumber, const FSearchFilter& Filter);
 
-	UFUNCTION(BlueprintCallable)
-	void JoinSession(int32 ID);//const UFoundSessionData* SessionToJoin);
 
+	// Function to work with search results after SearchSessions completed
 	void OnSearchSessionsComplete(TArray<FOnlineSessionSearchResult> SearchResults, bool bWasSuccessful);
 
-	TArray<FOnlineSessionSearchResult> RecentSearchResults;
+	/*
+	 * Join a session.
+	 * ID - this is the ID from UFoundSessionListViewEntry::Text_SessionIndex. 
+	 * This is the index of the session in RecentSearchResults array
+	 */
+	UFUNCTION(BlueprintCallable)
+	void JoinSession(int32 ID);
 
+	// Returns UMultiplayerSessionSubsystem* if success or nullptr otherwise
+	inline class UMultiplayerSessionsSubsystem* GetSessionsSubsystem();
+
+// Members
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+
+	// a reference to ListView of sessions in UserWidget
+	UPROPERTY(meta = (BindWidget))
 	class UListView* ListView_Sessions;
 
-	//TArray<UFoundSessionData> FoundSessionDataArray;
-
-	//UFUNCTION(BlueprintCallable)
-	//void JoinSession(const FOnlineSessionSearchResult* SessionToJoin);
-
-	//class FOnlineSessionSearchResult* CurrentSession;
+protected:
+	// An array which holds a copy of all searchresults to be able to 
+	// join any game having only the index of the game 
+	TArray<FOnlineSessionSearchResult> RecentSearchResults;
 };

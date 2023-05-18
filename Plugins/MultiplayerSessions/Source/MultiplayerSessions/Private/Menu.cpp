@@ -5,6 +5,9 @@
 #include "Components/ListView.h"
 #include "FoundSessionData.h"
 
+
+// Set the menu visible, change input mode etc.
+// Call whenever you want to begin to interact with the menu
 void UMenu::SetupMenu()
 {
 	AddToViewport();
@@ -29,6 +32,8 @@ void UMenu::SetupMenu()
 	}
 }
 
+// Before you destroy the menu you should call this 
+// To disable visibility, change input mode back etc.
 void UMenu::BeforeRemoval()
 {
 	UWorld* World = GetWorld();
@@ -42,6 +47,7 @@ void UMenu::BeforeRemoval()
 	}
 }
 
+// Override function which is called when current level is destroyed
 void UMenu::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
 {
 	BeforeRemoval();
@@ -51,25 +57,15 @@ void UMenu::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
 }
 
 
-UMultiplayerSessionsSubsystem* UMenu::GetSessionsSubsystem()
-{
-	// Check GetWorld() as GetGameInstance() function use this call too but doesn't check if GetWorld() returns nullptr
-	if (GetWorld()) {
-		UGameInstance* GameInstance = GetGameInstance();
-		if (GameInstance) {
-			return GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
-		}
-	}
-	return nullptr;
-
-}
-
+/* Create session and move to the lobby
+ * which is located here FString(TEXT("/Game/Maps/Lobby?listen"))
+ * To Implement: later could be added as parameter of the method
+ */ 
 void UMenu::HostSession()
 {
 	UMultiplayerSessionsSubsystem* SessionsSubsystem = GetSessionsSubsystem();
 	if (SessionsSubsystem)
 	{
-		// Debug
 		DEBUG_MESSAGE(FString(TEXT("SessionsSubsystem OK.")), FColor::Green);
 
 		SessionsSubsystem->HostLobby(4, EGameModes::EGM_Default, FString(TEXT("/Game/Maps/Lobby?listen")));
@@ -77,12 +73,15 @@ void UMenu::HostSession()
 }
 
 
+/* SearchSessions calls OnSearchSessionsComplete after the search completed
+ * MaxEntriesNumber - Amount of results which could be found. Should be 10 000+
+ * Filter - Some rules to specify a game we are looking for. To Implement
+ */
 void UMenu::SearchSessions(int MaxEntriesNumber, const FSearchFilter& Filter)
 {
 	UMultiplayerSessionsSubsystem* SessionsSubsystem = GetSessionsSubsystem();
 	if (SessionsSubsystem)
 	{
-		// Debug
 		DEBUG_MESSAGE(FString(TEXT("SessionsSubsystem OK.")), FColor::Green);
 
 		//FSearchFilter Filter;
@@ -90,29 +89,26 @@ void UMenu::SearchSessions(int MaxEntriesNumber, const FSearchFilter& Filter)
 
 		SessionsSubsystem->FindSessions(MaxEntriesNumber, Filter);
 	}
-
-
 }
 
 void UMenu::JoinSession(int32 ID)
 {
 	UMultiplayerSessionsSubsystem* SessionsSubsystem = GetSessionsSubsystem();
 	if (SessionsSubsystem) {
-		// Debug
 		DEBUG_MESSAGE(FString(TEXT("UMenu::JoinSession")), FColor::Green);
 		SessionsSubsystem->JoinSession(RecentSearchResults[ID]);
 	}
 }
 
+// Function to work with search results after SearchSessions completed
 void UMenu::OnSearchSessionsComplete(TArray<FOnlineSessionSearchResult> SearchResults, bool bWasSuccessful)
 {
-	// Debug
 	DEBUG_MESSAGE(FString(TEXT("UMenu::OnSearchSessionsComplete")), FColor::Green);
 
 	UMultiplayerSessionsSubsystem* SessionsSubsystem = GetSessionsSubsystem();
 	if (SessionsSubsystem) {
 		RecentSearchResults = SearchResults;
-		//for (const FOnlineSessionSearchResult& SearchResult : SearchResults) {
+
 		for (int32 Index = 0; Index < RecentSearchResults.Num(); ++Index) {
 
 			// Getting info from SearchResult
@@ -125,7 +121,9 @@ void UMenu::OnSearchSessionsComplete(TArray<FOnlineSessionSearchResult> SearchRe
 
 			SearchResult.Session.SessionSettings.Get(SessionSettingsKeys[ESessionSettings::ESS_GameMode], GameMode);
 
-			// Filling Listview Item
+			// Filling UObject data structure to send it to newly created 
+			// ListViewItem which will use this info to set its variables
+			// And create a new ListViewItem
 			UFoundSessionData* SessionData = NewObject<UFoundSessionData>(this, UFoundSessionData::StaticClass());
 			SessionData->ShortDescription = FString::Printf(TEXT("Owner name: %s, Game mode: %s"), *OwnerName, *GameMode);
 			SessionData->Index = Index;
@@ -133,10 +131,19 @@ void UMenu::OnSearchSessionsComplete(TArray<FOnlineSessionSearchResult> SearchRe
 			if (ListView_Sessions) {
 				ListView_Sessions->AddItem(SessionData);
 			}
-
-			if (GameMode.Equals(GameModesArray[EGameModes::EGM_Default])) {
-			}
 		}
 	}
 }
 
+// Returns UMultiplayerSessionSubsystem* if success or nullptr otherwise
+UMultiplayerSessionsSubsystem* UMenu::GetSessionsSubsystem()
+{
+	// Check GetWorld() as GetGameInstance() function use this call too but doesn't check if GetWorld() returns nullptr
+	if (GetWorld()) {
+		UGameInstance* GameInstance = GetGameInstance();
+		if (GameInstance) {
+			return GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
+		}
+	}
+	return nullptr;
+}

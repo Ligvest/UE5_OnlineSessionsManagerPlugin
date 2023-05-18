@@ -65,36 +65,5 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-
-	// Online subsystem related
-public:
-	//Pointer to the online session interface
-	IOnlineSessionPtr OnlineSessionPtr;
-
-	UFUNCTION(BlueprintCallable)
-	void CreateGameSession();
-
-	//UFUNCTION(BlueprintCallable)
-	void JoinGameSession(const FOnlineSessionSearchResult& SessionToJoin);
-
-	//class FOnlineSessionSearchResult* CurrentSession;
-
-	//UFUNCTION(BlueprintCallable)
-	//void FindSessions(int MaxEntriesNumber, const FSearchFilter& Filter);
-
-	void OnFindSessionsComplete(const TArray<FOnlineSessionSearchResult>& SearchResults, bool bWasSuccessful);
-
-
-	FOnCreateSessionCompleteDelegate OnCreateSessionCompleteDelegate;
-	FOnFindSessionsCompleteDelegate OnFindSessionsCompleteDelegate;
-	FOnJoinSessionCompleteDelegate OnJoinSessionCompleteDelegate;
-
-	TSharedPtr<FOnlineSessionSearch> SessionsSearchSettingsPtr;
-
-	void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
-	//void OnFindSessionsComplete(bool bWasSuccessful);
-	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type JoinSessionResult);
-
-	inline class UMultiplayerSessionsSubsystem* GetOnlineSessionsHelper();
 };
 
