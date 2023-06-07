@@ -1,5 +1,34 @@
 # UE5_OnlineSessionsManagerPlugin
 
+I created the plugin for STEAM.
+
+
+Add at the end of <your project>\Config\DefaultEngine.ini:
+  
+-------------------------------------------------------------------------------------------
+  
+[/Script/Engine.GameEngine]
++NetDriverDefinitions=(DefName="GameNetDriver",DriverClassName="OnlineSubsystemSteam.SteamNetDriver",DriverClassNameFallback="OnlineSubsystemUtils.IpNetDriver")
+
+[OnlineSubsystem]
+DefaultPlatformService=Steam
+
+[OnlineSubsystemSteam]
+bEnabled=true
+SteamDevAppId=480
+
+; If using Sessions
+bInitServerOnClient=true
+
+[/Script/OnlineSubsystemSteam.SteamNetDriver]
+NetConnectionClassName="OnlineSubsystemSteam.SteamNetConnection"
+  
+-------------------------------------------------------------------------------------------
+
+If these line are not valid anymore you can recheck here: https://docs.unrealengine.com/4.27/en-US/ProgrammingAndScripting/Online/Steam/ 
+
+
+
 How to use:
 
 Inherit a UserWidget from UMenu.
@@ -32,7 +61,8 @@ To host a session from the menu use:
 /* 
  * Create session and move to the lobby
  * which is located here FString(TEXT("/Game/Maps/Lobby?listen"))
- * To Implement: later could be added as parameter of the method
+ * If you need to change the path to the lobby then change it here: Menu.cpp: void UMenu::HostSession()
+ * To Implement: later could be added as a parameter of the method
  */ 
 UFUNCTION(BlueprintCallable)
 void HostSession();
