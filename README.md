@@ -3,7 +3,7 @@
 I created the plugin for STEAM.
 
 
-Add at the end of <your project>\Config\DefaultEngine.ini:
+Add at the end of <your project>\Config\DefaultEngine.ini ( IMPORTANT. When copying from here use "Raw" version of the file if you read this on github.com site):
   
 -------------------------------------------------------------------------------------------
   
